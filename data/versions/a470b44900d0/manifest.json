@@ -1,0 +1,35 @@
+{
+  "data_version": "a470b44900d0",
+  "raw_path": "C:\\Users\\CygMed-L3\\Desktop\\iris_mlflow_project\\data\\raw\\iris_events.csv",
+  "raw_rows": 350,
+  "train_rows": 280,
+  "test_rows": 70,
+  "missing_values_imputed": 9,
+  "medians": {
+    "sepal_length": 6.032,
+    "sepal_width": 3.029,
+    "petal_length": 4.451,
+    "petal_width": 1.327
+  },
+  "preprocess_config": {
+    "test_ratio": 0.2,
+    "random_state": 42,
+    "features": [
+      "sepal_length",
+      "sepal_width",
+      "petal_length",
+      "petal_width",
+      "petal_ratio",
+      "sepal_ratio",
+      "petal_area",
+      "sepal_area"
+    ],
+    "imputation": "median",
+    "feature_engineering": [
+      "petal_ratio",
+      "sepal_ratio",
+      "petal_area",
+      "sepal_area"
+    ]
+  }
+}
