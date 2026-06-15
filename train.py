@@ -1,7 +1,9 @@
 ﻿from __future__ import annotations
 
 import argparse
+import json
 import os
+import shutil
 from pathlib import Path
 
 import mlflow
@@ -24,6 +26,8 @@ RAW_DATA_PATH = ROOT / "data" / "raw" / "iris_events.csv"
 VERSIONS_DIR = ROOT / "data" / "versions"
 OUTPUTS = ROOT / "outputs"
 ARTIFACTS = ROOT / "artifacts"
+MODEL_PACKAGE = ROOT / "model_package"
+SERVING_SCRIPT = ROOT / "serving" / "predict.py"
 DEFAULT_TRACKING_URI = f"sqlite:///{(ROOT / 'mlflow.db').as_posix()}"
 EXPERIMENT_NAME = "iris-decision-tree-demo"
 
@@ -60,6 +64,48 @@ def ensure_experiment(tracking_uri: str) -> None:
     mlflow.set_experiment(EXPERIMENT_NAME)
 
 
+def export_model_package(
+    model: DecisionTreeClassifier,
+    version_info: dict[str, object],
+    accuracy: float,
+    package_dir: Path = MODEL_PACKAGE,
+) -> Path:
+    if package_dir.exists():
+        shutil.rmtree(package_dir)
+    package_dir.mkdir(parents=True)
+
+    (package_dir / "decision_tree.json").write_text(
+        json.dumps(model.to_dict(), indent=2),
+        encoding="utf-8",
+    )
+    (package_dir / "medians.json").write_text(
+        json.dumps(version_info["medians"], indent=2),
+        encoding="utf-8",
+    )
+    (package_dir / "metadata.json").write_text(
+        json.dumps(
+            {
+                "model_type": "decision_tree",
+                "format": "custom",
+                "framework": "python",
+                "data_version": version_info["data_version"],
+                "raw_rows": version_info["raw_rows"],
+                "train_rows": version_info["train_rows"],
+                "test_rows": version_info["test_rows"],
+                "accuracy": accuracy,
+                "input_features": RAW_FEATURE_NAMES,
+                "output": "iris_class",
+                "entrypoint": "predict.py",
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    (package_dir / "requirements.txt").write_text("pandas\n", encoding="utf-8")
+    shutil.copy2(SERVING_SCRIPT, package_dir / "predict.py")
+    return package_dir
+
+
 def main() -> None:
     args = parse_args()
     OUTPUTS.mkdir(exist_ok=True)
@@ -81,6 +127,7 @@ def main() -> None:
         min_samples_split=args.min_samples_split,
     ).fit(train_rows)
     accuracy, confusion = evaluate(model, test_rows)
+    model_package_dir = export_model_package(model, version_info, accuracy)
 
     with mlflow.start_run() as run:
         mlflow.log_params(
@@ -105,6 +152,7 @@ def main() -> None:
         mlflow.log_artifact(str(version_info["version_dir"] / "manifest.json"), artifact_path="data")
         mlflow.log_artifact(str(version_info["train_path"]), artifact_path="data")
         mlflow.log_artifact(str(version_info["test_path"]), artifact_path="data")
+        mlflow.log_artifacts(str(model_package_dir), artifact_path="model_package")
         mlflow.pyfunc.log_model(
             artifact_path="model",
             python_model=IrisDecisionTreePyfuncModel(model, version_info["medians"]),
@@ -126,6 +174,7 @@ def main() -> None:
         print(f"test_rows: {version_info['test_rows']}")
         print(f"accuracy: {accuracy:.4f}")
         print(f"model_uri: {model_uri}")
+        print(f"model_package_dir: {model_package_dir}")
 
 
 if __name__ == "__main__":
