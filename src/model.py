@@ -105,7 +105,7 @@ def best_split(rows: list[dict[str, str]]) -> tuple[str, float, list[dict[str, s
 
     for feature in FEATURE_NAMES:
         values = sorted({float(row[feature]) for row in rows})
-        thresholds = [(left + right) / 2 for left, right in zip(values, values[1:], strict=False)]
+        thresholds = [(left + right) / 2 for left, right in zip(values, values[1:])]
         for threshold in thresholds:
             left_rows = [row for row in rows if float(row[feature]) <= threshold]
             right_rows = [row for row in rows if float(row[feature]) > threshold]

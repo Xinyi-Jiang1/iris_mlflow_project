@@ -47,12 +47,12 @@ def generate_raw_rows(count: int, start_id: int, random_state: int) -> list[dict
     for offset in range(count):
         label = labels[(start_id + offset) % len(labels)]
         base = LABEL_PROFILES[label]
-        features = [round(value + rng.gauss(0, noise), 3) for value, noise in zip(base, [0.28, 0.2, 0.32, 0.16], strict=True)]
+        features = [round(value + rng.gauss(0, noise), 3) for value, noise in zip(base, [0.28, 0.2, 0.32, 0.16])]
         features = [max(value, 0.05) for value in features]
 
         row = {
             name: str(value)
-            for name, value in zip(RAW_FEATURE_NAMES, features, strict=True)
+            for name, value in zip(RAW_FEATURE_NAMES, features)
         }
         row.update(
             {
