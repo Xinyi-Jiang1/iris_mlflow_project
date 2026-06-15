@@ -28,6 +28,7 @@ OUTPUTS = ROOT / "outputs"
 ARTIFACTS = ROOT / "artifacts"
 MODEL_PACKAGE = ROOT / "model_package"
 SERVING_SCRIPT = ROOT / "serving" / "predict.py"
+SERVING_APP = ROOT / "serving" / "app.py"
 DEFAULT_TRACKING_URI = f"sqlite:///{(ROOT / 'mlflow.db').as_posix()}"
 EXPERIMENT_NAME = "iris-decision-tree-demo"
 
@@ -101,8 +102,9 @@ def export_model_package(
         ),
         encoding="utf-8",
     )
-    (package_dir / "requirements.txt").write_text("pandas\n", encoding="utf-8")
+    (package_dir / "requirements.txt").write_text("flask\npandas\n", encoding="utf-8")
     shutil.copy2(SERVING_SCRIPT, package_dir / "predict.py")
+    shutil.copy2(SERVING_APP, package_dir / "app.py")
     return package_dir
 
 
