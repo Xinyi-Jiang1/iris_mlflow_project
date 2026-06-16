@@ -55,6 +55,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-depth", type=int, default=4)
     parser.add_argument("--min-samples-split", type=int, default=8)
     parser.add_argument("--register-model-name", default=None)
+    parser.add_argument(
+        "--raw-data-path",
+        default=None,
+        help="Optional external raw CSV path mounted by TI-ONE, for example /opt/ml/input/data/iris_events.csv.",
+    )
     return parser.parse_args()
 
 
@@ -117,7 +122,16 @@ def main() -> None:
     mlflow.set_tracking_uri(tracking_uri)
     ensure_experiment(tracking_uri)
 
-    created_rows = ensure_raw_dataset(RAW_DATA_PATH, args.initial_rows, args.random_state)
+    if args.raw_data_path:
+        external_raw_data = Path(args.raw_data_path)
+        if not external_raw_data.exists():
+            raise FileNotFoundError(f"raw data file not found: {external_raw_data}")
+        RAW_DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(external_raw_data, RAW_DATA_PATH)
+        created_rows = 0
+    else:
+        created_rows = ensure_raw_dataset(RAW_DATA_PATH, args.initial_rows, args.random_state)
+
     added_rows = append_new_raw_rows(RAW_DATA_PATH, args.add_new_data, args.random_state)
     version_info = preprocess_and_version(RAW_DATA_PATH, VERSIONS_DIR, args.test_ratio, args.random_state)
 
