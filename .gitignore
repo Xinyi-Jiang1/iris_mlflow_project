@@ -4,3 +4,10 @@ mlflow.db
 outputs/
 model_package/
 *.log
+wandb/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+data/versions/
+*.zip
+_runtime/

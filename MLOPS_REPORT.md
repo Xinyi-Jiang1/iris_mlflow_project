@@ -29,13 +29,14 @@ iris_mlflow_project/
     data.py              Data generation, preprocessing, data versioning
     model.py             Pure Python decision tree implementation
     evaluate.py          Accuracy and confusion matrix calculation
-  train.py               Main training and MLflow logging entry point
+  prepare_data.py        Data preparation, versioning, and optional W&B dataset logging entry point
+  train.py               Model training and MLflow/W&B model logging entry point
   predict.py             Loads latest MLflow model and predicts
   requirements.txt       Runtime dependencies
   README.md              Usage guide
-  mlflow.db              MLflow metadata database
-  artifacts/             MLflow artifact store
-  outputs/
+  _runtime/mlflow/mlflow.db    MLflow metadata database
+  _runtime/mlflow/artifacts/     MLflow artifact store
+  _runtime/outputs/
     latest_data_version.txt
     latest_model_uri.txt
 ```
@@ -290,13 +291,13 @@ model artifacts
 Artifacts are stored in:
 
 ```text
-artifacts/
+_runtime/mlflow/artifacts/
 ```
 
 MLflow metadata is stored in:
 
 ```text
-mlflow.db
+_runtime/mlflow/mlflow.db
 ```
 
 ## 9. Confusion Matrix Meaning
@@ -328,7 +329,7 @@ Confusion matrix tells where the model is wrong.
 Open MLflow UI:
 
 ```powershell
-.venv\Scripts\python.exe -m mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5003 --workers 1
+.venv\Scripts\python.exe -m mlflow ui --backend-store-uri sqlite:///_runtime/mlflow/mlflow.db --port 5003 --workers 1
 ```
 
 Open in browser:
@@ -413,5 +414,5 @@ To predict with the latest model:
 To inspect runs:
 
 ```powershell
-.venv\Scripts\python.exe -m mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5003 --workers 1
+.venv\Scripts\python.exe -m mlflow ui --backend-store-uri sqlite:///_runtime/mlflow/mlflow.db --port 5003 --workers 1
 ```

@@ -11,8 +11,10 @@ from src.model import RAW_FEATURE_NAMES
 
 
 ROOT = Path(__file__).resolve().parent
-OUTPUTS = ROOT / "outputs"
-DEFAULT_TRACKING_URI = f"sqlite:///{(ROOT / 'mlflow.db').as_posix()}"
+RUNTIME = ROOT / "_runtime"
+MLFLOW_RUNTIME = RUNTIME / "mlflow"
+OUTPUTS = RUNTIME / "outputs"
+DEFAULT_TRACKING_URI = f"sqlite:///{(MLFLOW_RUNTIME / 'mlflow.db').as_posix()}"
 DEFAULT_SAMPLE = [5.1, 3.5, 1.4, 0.2]
 
 
