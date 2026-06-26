@@ -327,15 +327,20 @@ def main() -> None:
             mlflow.log_artifact(str(version_info["train_path"]), artifact_path="data")
             mlflow.log_artifact(str(version_info["test_path"]), artifact_path="data")
             mlflow.log_artifacts(str(model_package_dir), artifact_path="model_package")
-        mlflow.pyfunc.log_model(
-            artifact_path="" if gitlab_tracking else "model",
-            python_model=IrisDecisionTreePyfuncModel(model, version_info["medians"]),
-            input_example=pd.DataFrame([[5.1, 3.5, 1.4, 0.2]], columns=RAW_FEATURE_NAMES),
-            registered_model_name=None if gitlab_tracking else args.register_model_name,
-            code_paths=[str(ROOT / "src")],
-        )
-
-        model_uri = f"runs:/{run.info.run_id}/" if gitlab_tracking else f"runs:/{run.info.run_id}/model"
+        if gitlab_tracking:
+            # GitLab stores the exported serving package as run artifacts. Avoid
+            # mlflow.pyfunc.log_model() here because recent MLflow clients call
+            # logged-model APIs that GitLab's compatibility layer may reject.
+            model_uri = f"runs:/{run.info.run_id}/"
+        else:
+            mlflow.pyfunc.log_model(
+                artifact_path="model",
+                python_model=IrisDecisionTreePyfuncModel(model, version_info["medians"]),
+                input_example=pd.DataFrame([[5.1, 3.5, 1.4, 0.2]], columns=RAW_FEATURE_NAMES),
+                registered_model_name=args.register_model_name,
+                code_paths=[str(ROOT / "src")],
+            )
+            model_uri = f"runs:/{run.info.run_id}/model"
         (OUTPUTS / "latest_model_uri.txt").write_text(model_uri, encoding="utf-8")
         (OUTPUTS / "latest_data_version.txt").write_text(str(version_info["data_version"]), encoding="utf-8")
 
