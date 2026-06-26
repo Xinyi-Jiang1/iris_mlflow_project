@@ -46,9 +46,22 @@ Registered models appear under `Deploy > Model registry`.
 Store these as CI/CD variables:
 
 ```text
-MLFLOW_TRACKING_URI
-MLFLOW_TRACKING_TOKEN
+MLFLOW_TRACKING_URI=https://gitlab.com/api/v4/projects/<project-id>/ml/mlflow
+MLFLOW_TRACKING_TOKEN=<gitlab-access-token>
+WANDB_API_KEY=<wandb-api-key>
+WANDB_PROJECT=iris-mlflow-project
 ```
+
+`WANDB_PROJECT` is optional because `.gitlab-ci.yml` defaults it to `iris-mlflow-project`. Keep tokens masked and protected where possible.
+
+The CI job runs both backends:
+
+```text
+python prepare_data.py --wandb --wandb-project "$WANDB_PROJECT" --add-new-data 0
+python train.py --wandb --wandb-project "$WANDB_PROJECT"
+```
+
+This writes run metadata and artifacts to GitLab MLflow, writes experiment charts and artifact lineage to W&B, and stores the W&B run URL in the GitLab MLflow run metadata as `wandb.run_url`.
 
 The training script tags runs with these GitLab CI values when present:
 
@@ -57,3 +70,4 @@ gitlab.CI_JOB_ID
 git.commit
 git.branch
 ```
+

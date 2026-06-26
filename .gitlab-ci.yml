@@ -1,0 +1,34 @@
+﻿stages:
+  - train
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  WANDB_PROJECT: "iris-mlflow-project"
+
+cache:
+  paths:
+    - .cache/pip/
+
+train-with-gitlab-mlflow-and-wandb:
+  stage: train
+  image: python:3.11-slim
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  before_script:
+    - python --version
+    - python -m pip install --upgrade pip
+    - python -m pip install -r requirements.txt
+    - test -n "$MLFLOW_TRACKING_URI" || (echo "Missing MLFLOW_TRACKING_URI CI/CD variable" && exit 1)
+    - test -n "$MLFLOW_TRACKING_TOKEN" || (echo "Missing MLFLOW_TRACKING_TOKEN CI/CD variable" && exit 1)
+    - test -n "$WANDB_API_KEY" || (echo "Missing WANDB_API_KEY CI/CD variable" && exit 1)
+  script:
+    - python prepare_data.py --wandb --wandb-project "$WANDB_PROJECT" --add-new-data 0
+    - python train.py --wandb --wandb-project "$WANDB_PROJECT"
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - _runtime/outputs/
+      - _runtime/model_package/
