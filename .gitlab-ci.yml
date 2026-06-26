@@ -1,4 +1,4 @@
-﻿stages:
+stages:
   - train
 
 variables:
@@ -20,9 +20,10 @@ train-with-gitlab-mlflow-and-wandb:
     - python --version
     - python -m pip install --upgrade pip
     - python -m pip install -r requirements.txt
-    - test -n "$MLFLOW_TRACKING_URI" || (echo "Missing MLFLOW_TRACKING_URI CI/CD variable" && exit 1)
-    - test -n "$MLFLOW_TRACKING_TOKEN" || (echo "Missing MLFLOW_TRACKING_TOKEN CI/CD variable" && exit 1)
-    - test -n "$WANDB_API_KEY" || (echo "Missing WANDB_API_KEY CI/CD variable" && exit 1)
+    - |
+      test -n "$MLFLOW_TRACKING_URI" || { echo "Missing MLFLOW_TRACKING_URI CI/CD variable"; exit 1; }
+      test -n "$MLFLOW_TRACKING_TOKEN" || { echo "Missing MLFLOW_TRACKING_TOKEN CI/CD variable"; exit 1; }
+      test -n "$WANDB_API_KEY" || { echo "Missing WANDB_API_KEY CI/CD variable"; exit 1; }
   script:
     - python prepare_data.py --wandb --wandb-project "$WANDB_PROJECT" --add-new-data 0
     - python train.py --wandb --wandb-project "$WANDB_PROJECT"
