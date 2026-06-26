@@ -143,12 +143,17 @@ def main() -> None:
     )
 
     wandb_run = init_wandb_run(args, version_info, created_rows, added_rows)
+    wandb_run_url = None
     try:
+        if wandb_run is not None:
+            wandb_run_url = getattr(wandb_run, "url", None)
         log_wandb_dataset(wandb_run, version_info)
     finally:
         if wandb_run is not None:
             wandb_run.finish()
 
+    if wandb_run_url:
+        print(f"wandb_run_url: {wandb_run_url}")
     print(f"data_version: {version_info['data_version']}")
     print(f"raw_rows: {version_info['raw_rows']} (+{added_rows} this run)")
     print(f"train_rows: {version_info['train_rows']}")

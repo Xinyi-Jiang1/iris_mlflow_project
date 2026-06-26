@@ -357,8 +357,13 @@ def main() -> None:
             )
 
         wandb_run = init_wandb_run(args, params, run.info.run_id)
+        wandb_run_url = None
         try:
             if wandb_run is not None:
+                wandb_run_url = getattr(wandb_run, "url", None)
+                if wandb_run_url:
+                    mlflow.set_tag("wandb.run_url", wandb_run_url)
+                    mlflow.log_text(wandb_run_url, "wandb_run_url.txt")
                 wandb_run.log({"accuracy": accuracy})
                 log_wandb_artifacts(wandb_run, version_info, model_package_dir, accuracy)
         finally:
@@ -372,6 +377,8 @@ def main() -> None:
         if gitlab_tracking and args.register_model_name:
             print(f"registered_model_name: {args.register_model_name}")
             print(f"gitlab_model_version: {model_version}")
+        if wandb_run_url:
+            print(f"wandb_run_url: {wandb_run_url}")
         print(f"data_version: {version_info['data_version']}")
         print(f"raw_rows: {version_info['raw_rows']}")
         print(f"train_rows: {version_info['train_rows']}")
